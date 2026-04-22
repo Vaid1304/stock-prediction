@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Stock Movement Prediction System</title>
+    <meta name="description" content="Predict stock market direction using machine learning — Random Forest, Logistic Regression and Decision Trees.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ─── Navbar ────────────────────────────────────────── -->
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="#" class="nav-logo">
+            <span class="logo-icon">📈</span>
+            <span class="logo-text">StockPredict<span class="logo-accent">ML</span></span>
+        </a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#technology">Tech</a></li>
+            <li><a href="#workflow">Workflow</a></li>
+            <li><a href="#team">Team</a></li>
+        </ul>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- ─── Hero ──────────────────────────────────────────── -->
+<section class="hero" id="hero">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="container hero-content">
+        <p class="hero-badge">Machine Learning Project</p>
+        <h1 class="hero-title">Advanced Stock Movement<br>Prediction System</h1>
+        <p class="hero-tagline">Predicting stock market direction using machine learning</p>
+
+        <div class="predict-box" id="predictBox">
+            <div class="input-group">
+                <span class="input-icon">🔍</span>
+                <input type="text" id="tickerInput" placeholder="Enter stock symbol (e.g. TCS.NS, AAPL)" autocomplete="off">
+                <button id="predictBtn" onclick="predict()">
+                    <span class="btn-text">Predict</span>
+                    <span class="btn-loader" id="btnLoader"></span>
+                </button>
+            </div>
+            <div class="input-hints">
+                <span onclick="fillTicker('TCS.NS')">TCS.NS</span>
+                <span onclick="fillTicker('RELIANCE.NS')">RELIANCE.NS</span>
+                <span onclick="fillTicker('INFY.NS')">INFY.NS</span>
+                <span onclick="fillTicker('AAPL')">AAPL</span>
+                <span onclick="fillTicker('SBIN.NS')">SBIN.NS</span>
+            </div>
+        </div>
+        <p class="error-msg" id="errorMsg"></p>
+    </div>
+</section>
+
+<!-- ─── Prediction Results ────────────────────────────── -->
+<section class="results-section" id="results" style="display:none;">
+    <div class="container">
+
+        <!-- Top result card -->
+        <div class="result-hero-card" id="resultHeroCard">
+            <div class="result-header">
+                <div>
+                    <p class="result-label">Prediction for <strong id="resTicker"></strong></p>
+                    <p class="result-dates" id="resDates"></p>
+                </div>
+                <div class="confidence-badge" id="confidenceBadge">High Confidence</div>
+            </div>
+            <div class="result-main">
+                <div class="movement-display" id="movementDisplay">
+                    <span class="movement-arrow" id="movementArrow">↑</span>
+                    <span class="movement-text" id="movementText">UP</span>
+                </div>
+            </div>
+            <div class="probability-bars" id="probabilityBars"></div>
+        </div>
+
+        <!-- Graphs -->
+        <h2 class="section-title" id="graphsTitle">
+            <span class="title-icon">📊</span> Graphs &amp; Visualizations
+        </h2>
+        <div class="charts-grid">
+            <div class="card chart-card">
+                <h3>Stock Price Trend</h3>
+                <img id="chartTrend" alt="Stock price trend chart">
+            </div>
+            <div class="card chart-card">
+                <h3>Prediction Probabilities</h3>
+                <img id="chartProb" alt="Probability distribution chart">
+            </div>
+            <div class="card chart-card">
+                <h3>Confusion Matrix</h3>
+                <img id="chartCM" alt="Confusion matrix heatmap">
+            </div>
+            <div class="card chart-card">
+                <h3>Feature Importance</h3>
+                <img id="chartFeat" alt="Feature importance chart">
+            </div>
+        </div>
+
+        <!-- Model Comparison -->
+        <h2 class="section-title">
+            <span class="title-icon">🏆</span> Model Comparison
+        </h2>
+        <div class="model-grid" id="modelGrid"></div>
+
+        <!-- Backtesting -->
+        <h2 class="section-title">
+            <span class="title-icon">🔁</span> Backtesting Results
+        </h2>
+        <div class="card">
+            <div class="table-wrapper">
+                <table class="bt-table" id="backtestTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Prediction</th>
+                            <th>Actual</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="backtestBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Explanation -->
+        <h2 class="section-title">
+            <span class="title-icon">💡</span> Prediction Explanation
+        </h2>
+        <div class="card explanation-card">
+            <p id="explanationText"></p>
+        </div>
+    </div>
+</section>
+
+<!-- ─── About ─────────────────────────────────────────── -->
+<section class="section" id="about">
+    <div class="container">
+        <h2 class="section-title"><span class="title-icon">📌</span> About the Project</h2>
+        <div class="card about-card">
+            <p>
+                The <strong>Advanced Stock Movement Prediction System</strong> uses machine learning algorithms
+                to forecast the next-day trading direction of any publicly listed stock. By analyzing historical
+                price data, volume patterns, and technical indicators, a <strong>Random Forest Classifier</strong>
+                predicts whether a stock will move <em>UP</em>, <em>DOWN</em>, or remain <em>SIDEWAYS</em>.
+            </p>
+            <p>
+                The model is trained on years of historical market data obtained via
+                <strong>Yahoo Finance (yfinance)</strong>. Features such as daily returns, 5-day moving averages,
+                and volume ratios are engineered to capture both short-term momentum and trading activity.
+                The time-based train/test split ensures the evaluation reflects real-world conditions.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Technology ────────────────────────────────────── -->
+<section class="section section-alt" id="technology">
+    <div class="container">
+        <h2 class="section-title"><span class="title-icon">🛠️</span> Technology Used</h2>
+        <div class="tech-grid">
+            <div class="card tech-card">
+                <div class="tech-icon">🌐</div>
+                <h3>Frontend</h3>
+                <p>HTML, CSS, JavaScript</p>
+            </div>
+            <div class="card tech-card">
+                <div class="tech-icon">⚙️</div>
+                <h3>Backend</h3>
+                <p>Python, Flask</p>
+            </div>
+            <div class="card tech-card">
+                <div class="tech-icon">📚</div>
+                <h3>Libraries</h3>
+                <p>Pandas, NumPy, Scikit-learn, yfinance</p>
+            </div>
+            <div class="card tech-card">
+                <div class="tech-icon">📊</div>
+                <h3>Visualization</h3>
+                <p>Matplotlib, Seaborn</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Workflow ───────────────────────────────────────── -->
+<section class="section" id="workflow">
+    <div class="container">
+        <h2 class="section-title"><span class="title-icon">🔄</span> How It Works</h2>
+        <div class="workflow-pipeline">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-icon">📥</div>
+                <h4>Data Collection</h4>
+                <p>Download historical data via yfinance API</p>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-icon">🧹</div>
+                <h4>Preprocessing</h4>
+                <p>Clean and normalize price &amp; volume data</p>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-icon">🔧</div>
+                <h4>Feature Engineering</h4>
+                <p>Compute returns, moving averages, volume ratio</p>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-icon">🤖</div>
+                <h4>Model Training</h4>
+                <p>Train Random Forest classifier (200 trees)</p>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-icon">🎯</div>
+                <h4>Prediction</h4>
+                <p>Predict next-day movement with probabilities</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Team ──────────────────────────────────────────── -->
+<section class="section section-alt" id="team">
+    <div class="container">
+        <h2 class="section-title"><span class="title-icon">👥</span> Team</h2>
+        <div class="team-grid">
+            <div class="card team-card">
+                <div class="team-avatar">VP</div>
+                <h3>Vaidik Patidar</h3>
+                <p class="team-role">Developer</p>
+            </div>
+            <div class="card team-card">
+                <div class="team-avatar">VB</div>
+                <h3>Vansh Barya</h3>
+                <p class="team-role">Developer</p>
+            </div>
+            <div class="card team-card">
+                <div class="team-avatar guide-avatar">AA</div>
+                <h3>Arti Ahirwar</h3>
+                <p class="team-role">Project Guide — Assistant Professor</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Disclaimer ────────────────────────────────────── -->
+<section class="disclaimer-section">
+    <div class="container">
+        <div class="disclaimer-card">
+            <span class="disclaimer-icon">⚠️</span>
+            <p>
+                <strong>Disclaimer:</strong> This project is for <strong>educational purposes only</strong>
+                and does not constitute financial advice. Stock market predictions are inherently uncertain
+                and past performance does not guarantee future results. Always consult a qualified financial
+                advisor before making investment decisions.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Footer ────────────────────────────────────────── -->
+<footer class="footer">
+    <div class="container footer-content">
+        <p class="footer-logo">📈 StockPredict<span class="logo-accent">ML</span></p>
+        <p>&copy; 2026 Advanced Stock Movement Prediction System</p>
+    </div>
+</footer>
+
+<script>
+// ─── Navigation ──────────────────────────────────────────
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+navToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    navToggle.classList.toggle('active');
+});
+
+// Sticky navbar
+window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Close mobile menu on link click
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        navToggle.classList.remove('active');
+    });
+});
+
+// ─── Ticker helpers ──────────────────────────────────────
+function fillTicker(symbol) {
+    document.getElementById('tickerInput').value = symbol;
+    document.getElementById('tickerInput').focus();
+}
+
+// ─── Predict ─────────────────────────────────────────────
+async function predict() {
+    const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+    const errorMsg = document.getElementById('errorMsg');
+    const resultsSection = document.getElementById('results');
+    const btn = document.getElementById('predictBtn');
+
+    if (!ticker) {
+        errorMsg.textContent = 'Please enter a stock symbol.';
+        return;
+    }
+
+    errorMsg.textContent = '';
+    btn.classList.add('loading');
+    btn.disabled = true;
+    resultsSection.style.display = 'none';
+
+    try {
+        const resp = await fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticker })
+        });
+        const data = await resp.json();
+
+        if (data.error) {
+            errorMsg.textContent = data.error;
+            return;
+        }
+
+        renderResults(data);
+        resultsSection.style.display = 'block';
+        setTimeout(() => {
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
+    } catch (err) {
+        errorMsg.textContent = 'Something went wrong. Please try again.';
+    } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+    }
+}
+
+// Enter key
+document.getElementById('tickerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') predict();
+});
+
+// ─── Render ──────────────────────────────────────────────
+function renderResults(data) {
+    // Ticker and dates
+    document.getElementById('resTicker').textContent = data.ticker;
+    document.getElementById('resDates').innerHTML =
+        `Data up to <strong>${data.last_market_date}</strong> &nbsp;|&nbsp; Prediction for <strong>${data.prediction_date}</strong>`;
+
+    // Movement
+    const arrows = { UP: '↑', DOWN: '↓', SIDEWAYS: '→' };
+    const colorClasses = { UP: 'up', DOWN: 'down', SIDEWAYS: 'sideways' };
+    const movDisplay = document.getElementById('movementDisplay');
+    movDisplay.className = 'movement-display ' + colorClasses[data.predicted_class];
+    document.getElementById('movementArrow').textContent = arrows[data.predicted_class];
+    document.getElementById('movementText').textContent = data.predicted_class;
+
+    // Confidence badge
+    const badge = document.getElementById('confidenceBadge');
+    badge.textContent = data.confidence + ' Confidence';
+    badge.className = 'confidence-badge conf-' + data.confidence.toLowerCase();
+
+    // Probability bars
+    const probContainer = document.getElementById('probabilityBars');
+    probContainer.innerHTML = '';
+    ['UP', 'DOWN', 'SIDEWAYS'].forEach(cls => {
+        const val = data.probabilities[cls] || 0;
+        const barColor = { UP: '#22c55e', DOWN: '#ef4444', SIDEWAYS: '#eab308' }[cls];
+        probContainer.innerHTML += `
+            <div class="prob-row">
+                <span class="prob-label">${cls}</span>
+                <div class="prob-track">
+                    <div class="prob-fill" style="width:${val}%;background:${barColor};"></div>
+                </div>
+                <span class="prob-value">${val.toFixed(1)}%</span>
+            </div>`;
+    });
+
+    // Charts
+    document.getElementById('chartTrend').src = 'data:image/png;base64,' + data.charts.trend;
+    document.getElementById('chartProb').src = 'data:image/png;base64,' + data.charts.probability;
+    document.getElementById('chartCM').src = 'data:image/png;base64,' + data.charts.confusion_matrix;
+    document.getElementById('chartFeat').src = 'data:image/png;base64,' + data.charts.feature_importance;
+
+    // Model comparison
+    const modelGrid = document.getElementById('modelGrid');
+    modelGrid.innerHTML = '';
+    const modelIcons = { 'Random Forest': '🌲', 'Gradient Boosting': '🚀', 'Logistic Regression': '📐', 'Decision Tree': '🌿' };
+    data.model_comparison.forEach((m, i) => {
+        const best = i === 0 ? ' best-model' : '';
+        modelGrid.innerHTML += `
+            <div class="card model-card${best}">
+                <div class="model-icon">${modelIcons[m.name] || '🤖'}</div>
+                <h3>${m.name}</h3>
+                <div class="model-acc">${m.accuracy}%</div>
+                <p class="model-acc-label">Accuracy</p>
+                ${i === 0 ? '<span class="best-badge">Primary Model</span>' : ''}
+            </div>`;
+    });
+
+    // Backtest
+    const tbody = document.getElementById('backtestBody');
+    tbody.innerHTML = '';
+    data.backtest.forEach(row => {
+        const cls = row.correct.includes('Correct') ? 'correct' : 'incorrect';
+        tbody.innerHTML += `
+            <tr>
+                <td>${row.date}</td>
+                <td><span class="tag tag-${row.prediction.toLowerCase()}">${row.prediction}</span></td>
+                <td><span class="tag tag-${row.actual.toLowerCase()}">${row.actual}</span></td>
+                <td><span class="result-tag ${cls}">${row.correct}</span></td>
+            </tr>`;
+    });
+
+    // Explanation
+    document.getElementById('explanationText').innerHTML = data.explanation;
+}
+</script>
+
+</body>
+</html>
